@@ -14,8 +14,7 @@ def connection():
         settings.mysql_user,
         settings.mysql_passwd,
         settings.mysql_schema,
-    #    autocommit = True,   #ayto to exoume bgalei gia na mhn ginontai oi allages sthn vasi etsi wste na mhn xreiastei
-                              #na ksanafortwnoume thn vasi apo thn arxi kathe fora pou trexoume to programma mas
+    #    autocommit = True,   #we removed this, so that the changes in the database are not permanent
         charset = 'utf8')
 
     return con
@@ -47,13 +46,13 @@ def presentationOfArtists():
 @route('/view-artist-results', method='POST')
 def viewArtistResults():
     query = " select distinct ar_taut, onoma, epitheto, etos_gen from kalitexnis a "
-    if request.forms.get('type'):       # gia na doume poio radio button pathse
+    if request.forms.get('type'):       # to see which radio button has been clicked
         subject = request.forms.get('type')
     else:
         subject = "No"
     print(subject)
     geniko = 1
-    if(subject != "No"): # an patithike koumpi
+    if(subject != "No"): # if a button was clicked
         geniko = 0
         if(subject == "Singer"):
             query += " ,singer_prod s where a.ar_taut = s.tragoudistis "
@@ -65,13 +64,13 @@ def viewArtistResults():
         geniko = 1
         query +=" where true"
 
-    dict = {}#{'Name': '', 'Surname': '', 'birthYearFrom': '', 'birthYearTo': ''}    # xrhsimopoioume dictionary me key values gia na exoume dynamiko query
+    dict = {}#{'Name': '', 'Surname': '', 'birthYearFrom': '', 'birthYearTo': ''}    # we use dictionary with key values to have dynamic queries
 
     try:
         name = request.forms.get('name')
-        name = make_unicode(name)       # metatroph twn string se unicode
+        name = make_unicode(name)       # converting string to unicode
         if(name):
-            if(geniko == 1): # an den patithike koumpi apo panw
+            if(geniko == 1): # if a button wasn't clicked above
                 query += " and a.onoma = %(Name)s "
                 geniko = 0
             else:
@@ -87,7 +86,7 @@ def viewArtistResults():
         surname = request.forms.get('surname')
         surname = make_unicode(surname)
         if(surname):
-            if(geniko == 1):     # to geniko to vazoume gia na dsoume an prepei na exoume "and" sto string
+            if(geniko == 1):     # we put geniko to see if we have to have an "and" in the string
                 query += " and a.epitheto = %(Surname)s "
                 geniko = 0
             else:
@@ -98,8 +97,8 @@ def viewArtistResults():
     except:
         print("Surname emptyyyyyyy\n")
         surname = ""
-    #ta try - exception ta valame gt den afine na kanoume parse apo string to integer
-    # kai ebgaze error otan den ebazes hmeromhnies sto browser
+    #we put try - exception because we couldn't parse from string to integer
+    # and we had an error when you wouldn't put dates in the browser
     try :
         birthYearFrom = int(request.forms.get('birthYearFrom'))
         if(geniko == 1):
@@ -108,11 +107,11 @@ def viewArtistResults():
         else:
             query += " and a.etos_gen >= %(birthYearFrom)s "
         dict["birthYearFrom"] = birthYearFrom
-    except : # se periptwsh pou afisei keno to birthYearFrom
+    except : # in case he leaves birthYearFrom empty
         print ("birthYearFrom emptyyyyyyyyyyyyy\n")
         birthYearFrom = None
 
-    try :# se periptwsh pou afisei keno to birthYearTo
+    try :# in case he leaves birthYearTo empty
         birthYearTo = int(request.forms.get('birthYearTo'))
         if(geniko == 1):
             query += " and a.etos_gen <= %(birthYearTo)s "
@@ -125,7 +124,7 @@ def viewArtistResults():
         birthYearTo = None
 
     print(query)
-    #diladi dhmiourgoume ena query pou einai ena string kai ena dictionary me tis times sta shmeia name, surname , birthYearTo,birthYearFrom
+    #so we create a query that is a string and a dictionary with the values of name, surname , birthYearTo, birthYearFrom
     cur.execute(query,dict)
     print("APO TO QUERY EPESTREPSAN : ",cur.rowcount," ROWS" )
     data = cur.fetchall()
@@ -214,7 +213,7 @@ def artistInformationUpdated(id):
     query += " where ar_taut = %(ID)s"
     print(id, name , surname, year)
     print(query,dict)
-    if(flag == 1):     # mono an DEN einai ola kena na ginei to query
+    if(flag == 1):     # the query never happens if EVERYTHING is empty
         cur.execute(query,dict)
     return template('templates/artist-information-updated')
 
